@@ -1,0 +1,259 @@
+<%@page session="false" contentType="text/html" pageEncoding="UTF-8" import="java.util.*,javax.portlet.*, sg.infolab.core.constant.*" %>
+<%@taglib uri="http://java.sun.com/portlet_2_0" prefix="portlet"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+
+<%@include file="authentication.jsp" %>     
+
+<portlet:defineObjects/>     
+
+<portlet:resourceURL var="listAuditJson" id="listAuditJson" />
+<portlet:resourceURL var="archiveAuditJson" id="archiveAuditJson" />
+<portlet:resourceURL var="archiveSearch" id="archiveSearch" />
+<portlet:resourceURL var="sortingRecords" id="sortingRecords" />
+
+<script type="text/javascript"  src="<%=request.getContextPath() %>/js/auditList.js" ></script>
+<form id="auditList" method="post" action="${listAuditJson}" ng-controller="auditList">
+
+<input type="hidden" name="isArchiveSort" id="isArchiveSort" value="N"/>
+<input type="hidden" name="sortColumnName" id="sortColumnName"/>
+<input type="hidden" name="sortType" id="sortType"/>
+
+<div class="main-container rounded-white-box col-sm-8 col-md-9 main">
+	<div class="breadcrumbs"><a href="#">Home</a> > <a href="#">Admin</a> > Audit Trails</div>
+	<div class="body-container width-full">
+		<h3>Search Audit Trails</h3>
+	</div>
+	<div class="alert-box push-20"></div>
+	<div class="rounded-grey-box push-20">
+		<!-- Module -->
+		<div class="width-full push-20 clear-20">
+			<label><b>Modules<red>*</red></b></label><br />
+			<div class="col-md-5">
+				<div class="row">
+		           	<select id="moduleLeftBox" multiple="multiple" class="form-control">
+	 					<c:forEach items="${modules}" var="item">
+							<option value="${item.moduleId}" >${item.moduleName}</option>
+						</c:forEach>
+				   	</select>     
+				</div>  
+			</div>
+			<div class="col-md-2 text-center push-20">
+				<a class="btn btn-default" href="javascript:listbox_moveacross('moduleLeftBox', 'moduleRightBox')"><i class="fa fa-arrow-circle-o-right fa-lg"></i></a>
+				<a class="btn btn-default" href="javascript:listbox_moveacross('moduleRightBox', 'moduleLeftBox')"><i class="fa fa-arrow-circle-o-left fa-lg"></i></a>
+			</div>
+			<div class="col-md-5">
+				<div class="row">
+			    	<select id="moduleRightBox" multiple="multiple" class="form-control">
+			    		
+					</select>	   
+	        	</div>  
+			</div>
+		</div>
+		
+		<!-- User -->
+		<div class="width-full push-20 clear-20">
+			<label><b>Users<red>*</red></b></label><br />
+			<div class="col-md-5">
+				<div class="row">
+           			<select id="userLeftBox" multiple="multiple" class="form-control">
+ 					<c:forEach items="${users}" var="item">
+						<option value="${item.userId}" >${item.userName}</option>
+					</c:forEach>
+		   			</select>    
+       		 	</div>  
+			</div>
+	        
+			<div class="col-md-2 text-center push-20">
+				<a class="btn btn-default" href="javascript:listbox_moveacross('userLeftBox', 'userRightBox')"><i class="fa fa-arrow-circle-o-right fa-lg"></i></a>
+				<a class="btn btn-default" href="javascript:listbox_moveacross('userRightBox', 'userLeftBox')"><i class="fa fa-arrow-circle-o-left fa-lg"></i></a>
+			</div>
+				<div class="col-md-5">
+				<div class="row">
+			    	<select id="userRightBox" multiple="multiple" class="form-control">
+			    		
+					</select>	   
+	        	</div>  
+			</div>
+		</div>
+		
+		<!-- Dates -->
+		<div class="width-full  push-20 clear-20">
+			<label><b>Dates<red>*</red></b></label><br />
+			<input type="text" name="fromDate" id="fromDate" readonly="readonly" />
+			<img class="calendarBtn" id="fromDateBtn" src="/wshcTheme/library/images/calendarButton.gif" alt="Calendar">
+			To:
+			<input type="text" name="toDate" id="toDate" readonly="readonly" />
+			<img class="calendarBtn" id="toDateBtn" src="/wshcTheme/library/images/calendarButton.gif" alt="Calendar">
+		</div>
+		<div>
+			<table border="0" cellspacing="0" cellpadding="0" width="100%">
+				<tr>
+					<td><label><b>Archive Search</b></label></td>  
+			          	<td colspan="4" align="right">
+					  	<label>Archive: </label>
+					  	&nbsp;
+						<select id="selAuditYear" name="selAuditYear" onChange="javascript:archiveSearchSingleValidation('selAuditYear','errAuditYear');" class="fixIE6">
+							<option value="">-- Select Year --</option>
+							<c:if test="${not empty archiveYearList}">
+								<c:forEach items="${archiveYearList}" var="archiveYear">
+									<option value="${archiveYear}" <c:if test="${archiveYear == sessionBean.auditSearch.archiveYear}">selected</c:if>>${archiveYear}</option>
+								</c:forEach>
+							</c:if>
+						</select>
+						&nbsp;
+						<select id="selAuditMonth" name="selAuditMonth" onChange="javascript:archiveSearchSingleValidation('selAuditMonth','errAuditMonth');" class="fixIE6">
+							<option value="">-- Select Month --</option>
+							<c:if test="${not empty archiveMonthList}">
+								<c:forEach items="${archiveMonthList}" var="archiveMonth" varStatus="vs">
+									<option value="${vs.count}">${archiveMonth.CTListDesc}</option>
+								</c:forEach>
+							</c:if>
+						</select>
+						&nbsp;
+						<input type="button" name="btnArchiveSearch" value="Go" ng-click="fetchArchiveData('${listAuditJson}')" class="iwsh_buttonGo">
+						
+					</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+	
+	<div class="body-container width-full">
+       	<a class="white" href="javascript:void(0)" ng-click="searchFun()"><span id="generate" class="button right push-20">Search</span></a>
+	</div>
+	<br />
+	
+	<div class="body-container clear-40">
+		<div class="cms-table tab-content rounded-light-green-box">
+  			<table id="table1" class="cms-stats width-800">
+				<thead> 
+					<tr>
+						<th class="header"><input type="checkbox" id="auditIds" onclick="checkboxSelect(this, 'chkAuditArchive')" /></th>
+						<th class="header">S/No</th>
+						<th class="header">Title
+							<span ng-switch on="sortColumnName">
+								<span ng-switch-when="auditTitle">
+									<span ng-if="'ASC' == sortType">
+										<a href="javascript:void(0)" class="white" ng-click="sort('auditTitle','DESC')"><i class="fa fa-sort-desc"></i></a>					
+									</span>
+									<span ng-if="'DESC' == sortType">
+										<a href="javascript:void(0)" class="white" ng-click="sort('auditTitle','ASC')"><i class="fa fa-sort-asc"></i></a>					
+									</span>
+								</span>
+								<span ng-switch-default>
+									<a href="javascript:void(0)" class="white" ng-click="sort('auditTitle','ASC')"><i class="fa fa-sort-asc"></i></a>
+								</span>
+							</span>
+						</th>
+						<th class="header">Module
+							<span ng-switch on="sortColumnName">
+								<span ng-switch-when="moduleName">
+									<span ng-if="'ASC' == sortType">
+										<a href="javascript:void(0)" class="white" ng-click="sort('moduleName','DESC')"><i class="fa fa-sort-desc"></i></a>					
+									</span>
+									<span ng-if="'DESC' == sortType">
+										<a href="javascript:void(0)" class="white" ng-click="sort('moduleName','ASC')"><i class="fa fa-sort-asc"></i></a>					
+									</span>
+								</span>
+								<span ng-switch-default>
+									<a href="javascript:void(0)" class="white" ng-click="sort('moduleName','ASC')"><i class="fa fa-sort-asc"></i></a>
+								</span>
+							</span>
+						</th>
+						<th class="header">User Name
+							<span ng-switch on="sortColumnName">
+								<span ng-switch-when="userName">
+									<span ng-if="'ASC' == sortType">
+										<a href="javascript:void(0)" class="white" ng-click="sort('userName','DESC')"><i class="fa fa-sort-desc"></i></a>					
+									</span>
+									<span ng-if="'DESC' == sortType">
+										<a href="javascript:void(0)" class="white" ng-click="sort('userName','ASC')"><i class="fa fa-sort-asc"></i></a>					
+									</span>
+								</span>
+								<span ng-switch-default>
+									<a href="javascript:void(0)" class="white" ng-click="sort('userName','ASC')"><i class="fa fa-sort-asc"></i></a>
+								</span>
+							</span>
+						</th>
+						<th class="header">User ID
+							<span ng-switch on="sortColumnName">
+								<span ng-switch-when="userID">
+									<span ng-if="'ASC' == sortType">
+										<a href="javascript:void(0)" class="white" ng-click="sort('userID','DESC')"><i class="fa fa-sort-desc"></i></a>					
+									</span>
+									<span ng-if="'DESC' == sortType">
+										<a href="javascript:void(0)" class="white" ng-click="sort('userID','ASC')"><i class="fa fa-sort-asc"></i></a>					
+									</span>
+								</span>
+								<span ng-switch-default>
+									<a href="javascript:void(0)" class="white" ng-click="sort('userID','ASC')"><i class="fa fa-sort-asc"></i></a>
+								</span>
+							</span>
+						</th>
+						<th class="header">Date
+							<span ng-switch on="sortColumnName">
+								<span ng-switch-when="auditDate">
+									<span ng-if="'ASC' == sortType">
+										<a href="javascript:void(0)" class="white" ng-click="sort('auditDate','DESC')"><i class="fa fa-sort-desc"></i></a>					
+									</span>
+									<span ng-if="'DESC' == sortType">
+										<a href="javascript:void(0)" class="white" ng-click="sort('auditDate','ASC')"><i class="fa fa-sort-asc"></i></a>					
+									</span>
+								</span>
+								<span ng-switch-default>
+									<a href="javascript:void(0)" class="white" ng-click="sort('auditDate','ASC')"><i class="fa fa-sort-asc"></i></a>
+								</span>
+							</span>
+						</th>
+						<th class="header">Action
+							<span ng-switch on="sortColumnName">
+								<span ng-switch-when="auditAction">
+									<span ng-if="'ASC' == sortType">
+										<a href="javascript:void(0)" class="white" ng-click="sort('auditAction','DESC')"><i class="fa fa-sort-desc"></i></a>					
+									</span>
+									<span ng-if="'DESC' == sortType">
+										<a href="javascript:void(0)" class="white" ng-click="sort('auditAction','ASC')"><i class="fa fa-sort-asc"></i></a>					
+									</span>
+								</span>
+								<span ng-switch-default>
+									<a href="javascript:void(0)" class="white" ng-click="sort('auditAction','ASC')"><i class="fa fa-sort-asc"></i></a>
+								</span>
+							</span>
+						</th>
+					</tr>
+				</thead>
+				<tbody> 
+					<tr ng-repeat="obj in data" ng-class="{'odd' : $even}" >
+						<td><input type="checkbox" name="chkAuditArchive" value="{{obj.auditID}}" ng-model="obj.selected"/></td>
+						<td>{{ $index + start }}</td>
+						<td>{{ obj.auditTitle }}</td>
+						<td>{{ obj.auditModuleName }}</td>
+						<td>{{ obj.auditUserName }}</td>
+						<td>{{ obj.auditUserID }}</td>
+						<td>{{ obj.auditDate | ddMMyyyy }}</td>
+						<td>{{ obj.auditActionName}}</td>
+					</tr>	    
+				</tbody>
+			</table>
+		</div>
+		<div class="width-full push-20">
+			<label class="width-150">Total Record : {{total}}</label>
+			<label>Results Per Page<red>*</red>:</label>
+			<select id="auditPageSize" ng-click="search()">
+				<option value="20">20</option>
+				<option value="30">30</option>
+				<option value="50">50</option>
+			</select>
+			<div id="auditPaginationBottom" class="auditPagination pagination selector2 right"></div>
+			<p />
+			<div class="auditBox alert alert-danger fade in">
+				<p>No record found.</p>
+			</div>
+		</div>
+		<div class="right push-20 clear-20">
+			<a class="white" href="javascript:void(0)" ng-click="archive('${archiveAuditJson}')"><span id="archiveBtn" class="button-green">Archive</span></a>
+			<a class="white" href="<%=request.getContextPath()%>/AuditExportExcel.xlsx"><span id="excel" class="button-green"> Export to Excel</span></a>
+		</div>
+	</div>
+</div> 		
+</form>

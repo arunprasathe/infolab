@@ -1,0 +1,154 @@
+webApp.controller('auditList', ['$scope', '$rootScope', '$http', 
+    function($scope, $rootScope, $http){
+    	//set request params
+    	$scope.method = 'POST';
+    	$scope.url = $("#auditList").attr("action");
+    	$scope.data = {};
+    	$scope.total = 0;
+    	$scope.params = {};
+    	
+    	//request template
+    	$scope.template = function(operation) {
+    		$scope.code = null;
+    		$scope.response = null;
+    		$http({
+    			method : $scope.method,
+    			url : $scope.url,
+    			params : $scope.params,
+    			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+    		}).success(operation).error(function(data, status) {
+    			$scope.data = data || "Request failed";
+    			$scope.status = status;
+    		});
+    	};
+
+    	//search result and all the pagination should be reload
+    	$scope.pagination = function(data, status) {
+    		if(data.datas && data.datas.totalRecord > 0){
+    			$(".auditBox").hide();	
+    			$scope.status = status;
+        		$scope.data = data.datas.resultList;
+        		$scope.total = data.datas.totalRecord;
+    		}else{
+    			$scope.data = {};
+    			$scope.total = 0;
+    			$(".auditBox").show();	
+    		}
+    		//reset the pagination
+    		$(".auditPagination").pagination({
+    			items: data.datas.totalRecord,
+    	        itemsOnPage: data.datas.resultPerPage,
+    	        cssStyle: 'light-theme',
+    	        onPageClick: function(pageNumber) {
+    	    		var auditSearch = generateAuditSearch(pageNumber);
+    	    		$scope.params = auditSearch;
+    	        	$scope.template($scope.fetch);
+    	        }
+    	    });
+    	};
+    	
+    	//pagination only, no need change
+    	$scope.fetch = function(data, status) {
+    		$scope.status = status;
+    		$scope.data = data.datas.resultList;
+    		$scope.total = data.datas.totalRecord;
+    	};
+    	
+    	//search
+    	$scope.search = function() {
+    		if($('#isArchiveSort').val()=='Y'){
+    			$('#archiveBtn').hide();
+    		}else{
+    			$('#archiveBtn').show();
+    		}
+    		$scope.url = $("#auditList").attr("action");
+    		var auditSearch = generateAuditSearch(1);
+    		$scope.params = auditSearch;
+    		$scope.template($scope.pagination);
+    	};
+    	
+    	$scope.searchFun = function() {
+    		 $('#selAuditYear').val("");
+    		 $('#selAuditMonth').val("");
+    		 $('#isArchiveSort').val('N');
+    		$scope.search();
+    	};
+	   	
+    	$scope.fetchArchiveData=function(url){
+    		listbox_moveacross('moduleRightBox', 'moduleLeftBox');
+    		listbox_moveacross('userRightBox', 'userLeftBox');
+    		$('#fromDate').val("");
+		 	$('#toDate').val("");
+    		$scope.url = url;
+    		$('#isArchiveSort').val('Y');
+    		$scope.search();
+    	};
+    	
+    	$scope.archive = function selectedArchive(url) {
+  		  var chkAuditArchive = [];
+  		    $('input[name=chkAuditArchive]:checked').map(function(){
+  		    	chkAuditArchive.push($(this).val());
+  		    });
+  		    $scope.url = url;
+      		$scope.params = {"chkAuditArchive":chkAuditArchive};
+      		$scope.template($scope.fetchArchive);
+    	};
+  	
+    	//fetchArchive
+    	$scope.fetchArchive = function (data,status) {
+    		$scope.status = status;
+    		if(data.result){
+    			if(data.result == 'N'){
+    				$(".alert-box").html(data.message);
+    				$(".alert-box").fadeIn();
+    			}else{
+    				$(".alert-box").html(data.message);
+    				$(".alert-box").fadeIn();
+    				$(".alert-box").fadeOut(5000);
+    			}
+    		}
+    		$scope.search();
+    	};
+    	
+    	$scope.sort = function (columnName,type) {
+    		$('#sortColumnName').val(columnName);
+    		$('#sortType').val(type);
+    		$scope.search();
+    	};
+    	
+    	//default display
+    	$scope.template($scope.pagination);
+    	$(".auditBox").hide();
+    	
+    	//init calendar components
+    	var dateFormat = "%d/%m/%Y";
+		infolabCalendar = Calendar.setup({
+			onSelect: function(cal) { cal.hide(); }
+		}); 
+		infolabCalendar.manageFields("fromDateBtn", "fromDate", dateFormat);
+		infolabCalendar.manageFields("toDateBtn", "toDate", dateFormat);
+    }
+]);
+
+
+function generateAuditSearch(pageNumber){
+	var moduleIds = $.map($('#moduleRightBox option') ,function(option) {
+	    return option.value;
+	});
+	var userIds = $.map($('#userRightBox option') ,function(option) {
+	    return option.value;
+	});
+	var pageSize = $("#auditPageSize").val();
+	var fromDate = $("#fromDate").val();
+	var toDate = $("#toDate").val();
+	
+	var selAuditYear = $("#selAuditYear").val();
+	var selAuditMonth = $("#selAuditMonth").val();
+	var isArchiveSort =  $('#isArchiveSort').val();
+	
+	var sortColumnName = $('#sortColumnName').val();
+	var sortType = $('#sortType').val();
+	
+	return {"page" : pageNumber, "resultPerPage" : pageSize, "searchCriteria['moduleIds']" : moduleIds, "searchCriteria['userIds']" : userIds , "searchCriteria['fromDate']" : fromDate , "searchCriteria['toDate']" : toDate, "searchCriteria['selAuditYear']" : selAuditYear  , "searchCriteria['selAuditMonth']" : selAuditMonth, "sortColumnName" : sortColumnName, "sortType" : sortType, "searchCriteria['isArchiveSort']" : isArchiveSort};
+}
+

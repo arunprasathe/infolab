@@ -1,0 +1,204 @@
+//
+// Responsive: Utility classes
+// --------------------------------------------------
+
+
+// IE10 in Windows (Phone) 8
+//
+// Support for responsive views via media queries is kind of borked in IE10, for
+// Surface/desktop in split view and for Windows Phone 8. This particular fix
+// must be accompanied by a snippet of JavaScript to sniff the user agent and
+// apply some conditional CSS to *only* the Surface/desktop Windows 8. Look at
+// our Getting Started page for more information on this bug.
+//
+// For more information, see the following:
+//
+// Issue: https://github.com/twbs/bootstrap/issues/10497
+// Docs: http://getbootstrap.com/getting-started/#browsers
+// Source: http://timkadlec.com/2012/10/ie10-snap-mode-and-responsive-design/
+
+@-ms-viewport {
+  width: device-width;
+}
+
+
+// Float utilities
+.pull-left-xs,
+.pull-left-sm,
+.pull-left-md,
+.pull-left-lg {
+  float: left;
+}
+
+.pull-left-xs-f {
+  float: none !important;
+}
+
+
+.pull-left-xs {
+  @media (max-width: @screen-xs-max) {
+    float: none;
+  }
+}
+.pull-left-sm {
+  @media (min-width: @screen-sm-min) and (max-width: @screen-sm-max) {
+    float: none;
+  }
+}
+.pull-left-md {
+  @media (min-width: @screen-md-min) and (max-width: @screen-md-max) {
+    float: none;
+  }
+}
+.pull-left-lg {
+  @media (min-width: @screen-lg-min) {
+    float: none;
+  }
+}
+
+.pull-right-xs,
+.pull-right-sm,
+.pull-right-md,
+.pull-right-lg {
+  float: right;
+}
+
+.pull-right-xs {
+  @media (max-width: @screen-xs-max) {
+    float: none;
+  }
+}
+.pull-right-sm {
+  @media (min-width: @screen-sm-min) and (max-width: @screen-sm-max) {
+    float: none;
+  }
+}
+.pull-right-md {
+  @media (min-width: @screen-md-min) and (max-width: @screen-md-max) {
+    float: none;
+  }
+}
+.pull-right-lg {
+  @media (min-width: @screen-lg-min) {
+    float: none;
+  }
+}
+
+.col-first-xs,
+.col-first-sm,
+.col-first-md,
+.col-first-lg {
+  padding-right: 15px;
+}
+
+
+.col-mid-xs {
+  @media (max-width: @screen-xs-max) {
+    padding-right: 15px;
+  }
+}
+.col-mid-sm {
+  @media (min-width: @screen-sm-min) and (max-width: @screen-sm-max) {
+    padding-right: 15px;
+  }
+}
+.col-mid-md {
+  @media (min-width: @screen-md-min) and (max-width: @screen-md-max) {
+    padding-right: 0px;
+    padding-left: 0px;
+  }
+}
+.col-mid-lg {
+  @media (min-width: @screen-lg-min) {
+    padding-right: 0;
+     padding-left: 0px;
+  }
+}
+
+.col-first-xs {
+  @media (max-width: @screen-xs-max) {
+    padding-right: 0;
+  }
+}
+.col-first-sm {
+  @media (min-width: @screen-sm-min) and (max-width: @screen-sm-max) {
+    padding-right: 0;
+  }
+}
+.col-first-md {
+  @media (min-width: @screen-md-min) and (max-width: @screen-md-max) {
+    padding-right: 0;
+  }
+}
+.col-first-lg {
+  @media (min-width: @screen-lg-min) {
+    padding-right: 0;
+  }
+}
+
+.col-last-xs,
+.col-last-sm,
+.col-last-md,
+.col-last-lg {
+  padding-left: 15px;
+}
+
+.col-last-xs {
+  @media (max-width: @screen-xs-max) {
+    padding-left: 0;
+  }
+}
+.col-last-sm {
+  @media (min-width: @screen-sm-min) and (max-width: @screen-sm-max) {
+    padding-left: 0;
+  }
+}
+.col-last-md {
+  @media (min-width: @screen-md-min) and (max-width: @screen-md-max) {
+    padding-left: 0;
+  }
+}
+.col-last-lg {
+  @media (min-width: @screen-lg-min) {
+    padding-left: 0;
+  }
+}
+
+.horizontal-align-xs {
+  @media (max-width: @screen-xs-max) {
+    .horizontal-align();
+  }
+}
+
+.text-center-xs {
+  @media (max-width: @screen-xs-max) {
+    text-align: center;
+    width: 100%;
+  }
+}
+
+.bg-blue-xs {
+  @media (max-width: @screen-xs-max) {
+    background: @brand-secondary;
+    border-top: 1px solid darken(@brand-secondary, 5%);
+  }
+}
+
+.site-tools-nav {
+    ul {
+        li {
+            a {
+                color: lighten(@grey, 15%);
+                @media (max-width: @screen-xs-max) {
+                    color: @white;
+                    
+                    &:hover, &:focus {
+			            color: @brand-secondary;
+			            .border-radius(3px);
+			            background-color: @white;
+			        }
+                }
+            }
+        }
+    }
+}

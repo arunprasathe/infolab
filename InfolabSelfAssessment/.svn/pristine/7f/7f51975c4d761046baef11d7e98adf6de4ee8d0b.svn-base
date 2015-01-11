@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans default-lazy-init="false"
+	xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:jee="http://www.springframework.org/schema/jee" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+           http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+           http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-4.0.xsd
+           http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd 
+           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+	
+	<!-- 
+		pick up @Configuration classes 
+		Because @Configuration is meta-annotated with @Component, @Configuration-annotated
+		classes are automatically candidates for component scanning. Using the same scenario as above, we can
+		redefine system-test-config.xml to take advantage of component-scanning. Note that in this
+		case, we don't need to explicitly declare <context:annotation-config/>, because
+		<context:component-scan/> enables all the same functionality.
+		
+		这个配置告诉springmvc对com.leo.controller进行扫描,并创建其中的javaBean并注入到spring容器中.
+		
+		complicated config is:
+		<context:component-scan base-package="com.foo" use-default-filters="false">
+   			<context:include-filter type="regex" expression="com.foo.bar.*Config"/>
+    		<context:include-filter type="regex" expression="com.foo.config.*"/>
+		</context:component-scan>
+		
+		dynamic scan:
+		<code>
+		public static void main(String[] args) {
+			AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+			ctx.scan("com.acme");
+			ctx.refresh();
+			MyService myService = ctx.getBean(MyService.class);
+		}
+	   </code>
+	-->
+	
+	<import resource="classpath:common-admin-spring-service.xml" />
+	<import resource="classpath:common-login-spring-service.xml" />
+	<import resource="classpath:common-audit-spring-service.xml" />
+	<context:component-scan base-package="sg.infolab.audit.controller"/>
+
+	<!-- 
+		This tag registers the DefaultAnnotationHandlerMapping and AnnotationMethodHandlerAdapter beans
+		that are required for Spring MVC to dispatch requests to @Controllers. The tag configures those two
+		beans with sensible defaults based on what is present in your classpath.
+		The same as below:
+		<bean class="org.springframework.web.portlet.mvc.annotation.DefaultAnnotationHandlerMapping"/>
+		<bean class="org.springframework.web.portlet.mvc.annotation.AnnotationMethodHandlerAdapter"/>
+	 -->
+	<mvc:annotation-driven />
+
+	<!-- Handles HTTP GET requests for /resources/** by efficiently serving 
+		up static resources -->
+	<!-- Allows for mapping the DispatcherServlet to "/" by forwarding static 
+		resource requests to the container's default Servlet -->
+	<mvc:default-servlet-handler />
+	
+	<!-- 
+		这个配置告诉springmvc,springmvc相关的bean中使用注解来进行表示, 这样Spring的Annotation才会起作用.
+		依次会注入:
+		AutowiredAnnotationBeanPostProcessor CommonAnnotationBeanPostProcessor 
+		PersistenceAnnotationBeanPostProcessor RequiredAnnotationBeanPostProcessor 
+	          有了 <context:component-scan /> 可以无视了
+	 -->
+	<context:annotation-config/>
+	
+	
+	<!-- Message Source -->
+	<bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+		<property name="basename" value="AuditPortletResource"/>
+	</bean>
+
+	<!-- Default View Resolver -->
+	<bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="cache" value="true" />
+		<property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
+		<property name="prefix" value="/WEB-INF/jsp/" />
+		<property name="suffix" value=".jsp" />
+	</bean>	
+
+	<!-- Abstract Default Exception Handler -->
+	<bean id="defaultExceptionHandlerTemplate"
+		class="org.springframework.web.portlet.handler.SimpleMappingExceptionResolver">
+		<property name="defaultErrorView" value="defError" />
+		<property name="exceptionMappings">
+			<props>
+				<prop key="com.seannewby.AppException">appError</prop>
+			</props>
+		</property>
+	</bean>		
+
+	<!-- Exceptions Handlers -->
+	<bean id="defaultExceptionHandler" parent="defaultExceptionHandlerTemplate"/>	
+	
+</beans>
+	

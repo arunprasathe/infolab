@@ -1,0 +1,51 @@
+demoApp.controller('DemoView', ['$scope', '$rootScope', '$http',
+    function($scope, $rootScope, $http){
+		//set request params
+		$scope.method = 'POST';
+		$scope.url = '';
+		$scope.data = {};
+		$scope.params = {};
+		
+		//request template
+		$scope.template = function(operation) {
+			$scope.code = null;
+			$scope.response = null;
+			$http({
+				method : $scope.method,
+				url : $scope.url,
+				params : $scope.params,
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+			}).success(operation).error(function(data, status) {
+				$scope.data = data || "Request failed";
+				$scope.status = status;
+			});
+		};
+		
+		// view record
+		$scope.viewById = function(data, status) {
+			$scope.status = status;
+			$scope.loginHistory = data;
+		};
+		
+		// view record
+		$scope.updateById = function(data, status) {
+			$scope.status = status;
+			$scope.loginHistory = data;
+		};
+		
+		// update record
+		$scope.update = function(url) {
+			$scope.url = url;
+			$scope.params = $scope.loginHistory;
+			$scope.template($scope.updateById);
+		};
+	
+		// Get Broadcast
+		$scope.$on('viewDemo', function(event, url, params) {
+			$scope.url = url;
+			$scope.params = {"userId" : params};
+			$scope.template($scope.viewById);
+		});
+
+	}
+]);

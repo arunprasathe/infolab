@@ -1,0 +1,64 @@
+demoApp.controller('DemoPagination', ['$scope', '$rootScope', '$http',
+    function($scope, $rootScope, $http){
+    	//set request params
+    	$scope.method = 'POST';
+    	$scope.url = $("#demoList").attr("action");
+    	$scope.data = {};
+    	$scope.params = {};
+    	
+    	//request template
+    	$scope.template = function(operation) {
+    		$scope.code = null;
+    		$scope.response = null;
+    		$http({
+    			method : $scope.method,
+    			url : $scope.url,
+    			params : $scope.params,
+    			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+    		}).success(operation).error(function(data, status) {
+    			$scope.data = data || "Request failed";
+    			$scope.status = status;
+    		});
+    	};
+
+    	//search result and all the pagination should be reload
+    	$scope.pagination = function(data, status) {
+    		if(data && data.totalRecord > 0){
+    			$scope.status = status;
+        		$scope.data = data.resultList;
+	    		$("#demoPagination").pagination({
+	    			items: data.totalRecord,
+	    	        itemsOnPage: data.resultPerPage,
+	    	        cssStyle: 'light-theme',
+	    	        onPageClick: function(pageNumber) {
+	    	        	if(!$scope.searchName){
+	    	        		$scope.searchName = "";
+	    	        	}
+	    	        	$scope.params = {"page" : pageNumber, "searchCriteria['userId']" : "%" + $scope.searchName + "%"};
+	    	        	$scope.template($scope.fetch);
+	    	        }
+	    	    });
+    		}
+    	};
+    	
+    	//pagination only, no need change
+    	$scope.fetch = function(data, status) {
+    		$scope.status = status;
+    		$scope.data = data.resultList;
+    	};
+    	
+    	//search
+    	$scope.search = function() {
+    		$scope.params = {"page" : 1, "searchCriteria['userId']" : "%" + $scope.searchName + "%"};
+    		$scope.template($scope.pagination);
+    	}
+    	
+    	//view send broadcast
+    	$scope.view = function(url, params) {
+    		$rootScope.$broadcast('viewDemo', url, params);
+    	}
+    	
+    	//default display
+    	$scope.template($scope.pagination);
+    }
+]);

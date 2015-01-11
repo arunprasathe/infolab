@@ -1,0 +1,132 @@
+<%@page session="false" contentType="text/html" pageEncoding="UTF-8" import="java.util.*,javax.portlet.*" %>
+<%@taglib uri="http://java.sun.com/portlet_2_0" prefix="portlet"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>     
+
+<portlet:defineObjects/>
+<portlet:resourceURL var="listAuditJson" id="listAuditJson" />
+
+<script type="text/javascript"  src="<%=request.getContextPath() %>/js/auditList.js" ></script>
+
+<form id="auditList" method="post" action="${listAuditJson}" ng-controller="auditList">
+<div class="main-container rounded-white-box col-sm-8 col-md-9 main">
+	<div class="breadcrumbs"><a href="#">Home</a> > <a href="#">Admin</a> > Audit Trails</div>
+	<div class="body-container width-full">
+		<h3>Search Audit Trails</h3>
+	</div>
+	<div class="rounded-grey-box push-20">
+		<!-- Module -->
+		<div class="width-full push-20 clear-20">
+			<label><b>Modules<red>*</red></b></label><br />
+			<div class="col-md-5">
+				<div class="row">
+		           	<select id="moduleLeftBox" multiple="multiple" class="form-control">
+	 					<c:forEach items="${modules}" var="item">
+							<option value="${item.moduleId}" >${item.moduleName}</option>
+						</c:forEach>
+				   	</select>     
+				</div>  
+			</div>
+			<div class="col-md-2 text-center push-20">
+				<a class="btn btn-default" href="javascript:listbox_moveacross('moduleLeftBox', 'moduleRightBox')"><i class="fa fa-arrow-circle-o-right fa-lg"></i></a>
+				<a class="btn btn-default" href="javascript:listbox_moveacross('moduleRightBox', 'moduleLeftBox')"><i class="fa fa-arrow-circle-o-left fa-lg"></i></a>
+			</div>
+			<div class="col-md-5">
+				<div class="row">
+			    	<select id="moduleRightBox" multiple="multiple" class="form-control">
+			    		
+					</select>	   
+	        	</div>  
+			</div>
+		</div>
+		
+		<!-- User -->
+		<div class="width-full push-20 clear-20">
+			<label><b>Modules<red>*</red></b></label><br />
+			<div class="col-md-5">
+				<div class="row">
+           			<select id="userLeftBox" multiple="multiple" class="form-control">
+ 					<c:forEach items="${users}" var="item">
+						<option value="${item.userId}" >${item.userName}</option>
+					</c:forEach>
+		   			</select>    
+       		 	</div>  
+			</div>
+	        
+			<div class="col-md-2 text-center push-20">
+				<a class="btn btn-default" href="javascript:listbox_moveacross('userLeftBox', 'userRightBox')"><i class="fa fa-arrow-circle-o-right fa-lg"></i></a>
+				<a class="btn btn-default" href="javascript:listbox_moveacross('userRightBox', 'userLeftBox')"><i class="fa fa-arrow-circle-o-left fa-lg"></i></a>
+			</div>
+				<div class="col-md-5">
+				<div class="row">
+		    	<select id="userRightBox" multiple="multiple" class="form-control">
+		    		
+				</select>	   
+	        	</div>  
+			</div>
+		</div>
+		
+		<!-- Dates -->
+		<div class="width-full  push-20 clear-20">
+			<label><b>Dates<red>*</red></b></label><br />
+			<input type="text" name="fromDate" id="fromDate" readonly="readonly" />
+			<img class="calendarBtn" id="fromDateBtn" src="/wshcTheme/library/images/calendarButton.gif" alt="Calendar">
+			To:
+			<input type="text" name="toDate" id="toDate" readonly="readonly" />
+			<img class="calendarBtn" id="toDateBtn" src="/wshcTheme/library/images/calendarButton.gif" alt="Calendar">
+		</div>
+	</div>
+	
+	<div class="body-container width-full">
+       	<div id="generate" class="button right push-20"><a class="white" href="javascript:void(0)" ng-click="search()">Search</a></div>
+	</div>
+	<br />
+	
+	<div class="body-container clear-40">
+		<div class="cms-table tab-content rounded-light-green-box">
+  			<table id="table1" class="cms-stats width-800">
+				<thead> 
+					<tr>
+						<th class="header"><input type="checkbox" ng-click="" /></th>
+						<th class="header">S/No</th>
+						<th class="header">Title</th>
+						<th class="header">Module</th>
+						<th class="header">User Name</th>
+						<th class="header">User ID</th>
+						<th class="header">Date</th>
+						<th class="header">Action</th>
+					</tr>
+				</thead>
+				<tbody> 
+					<tr ng-repeat="obj in data" ng-class="{'odd' : $even}">
+						<td><input type="checkbox" name="auditIds" value="{{ obj.auditID }}" /></td>
+						<td>{{ $index + 1 }}</td>
+						<td>{{ obj.auditTitle }}</td>
+						<td>{{ obj.auditModuleName }}</td>
+						<td>{{ obj.auditUserName }}</td>
+						<td>{{ obj.auditUserID }}</td>
+						<td>{{ obj.auditDateDisplay }}</td>
+						<td>Archive</td>
+					</tr>	    
+				</tbody>
+			</table>
+     		</div>
+     		<div class="width-full push-20">
+			<label class="width-200">Total Record : {{total}}</label>
+			<label>Results Per Page<red>*</red>:</label>
+			<select class="width-100" id="auditPageSize" ng-click="changePageSize()">
+				<option value="20">20</option>
+				<option value="50">50</option>
+				<option value="100">100</option>
+			</select>
+			<div id="auditPaginationBottom" class="auditPagination pagination selector2 right"></div>
+			<p />
+			<div class="auditBox alert alert-danger fade in">
+				<p>No record found.</p>
+			</div>
+	 	</div>
+	 	<div class="right push-20 clear-20">
+			<div id="excel" class="button-green"><a class="white" href="#">Export to Excel</a></div>
+		</div>
+	</div>
+</div> 		
+</form>

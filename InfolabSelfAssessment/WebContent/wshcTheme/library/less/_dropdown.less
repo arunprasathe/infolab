@@ -1,0 +1,54 @@
+.drop-container {
+    font-family: @font-family-base;
+    color: @white;
+    background-color: @navbar-default-link-active-bg;
+    padding-top: 0;
+    
+    p{
+        font-size: 12px;
+        margin-top: 10px;
+        font-weight: normal;
+    }
+    
+    .drop-section {
+        background-color: @navbar-default-link-active-bg;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        
+        h5, h6 {
+            color: @brand-primary;
+        }
+        .sub-menu {
+            li {
+                
+                a {
+                    font-size: 13px;
+                    color: @white;
+                    text-decoration: none;
+                    font-weight: 400;
+                    
+                    &:hover, &:focus {
+                        color: @brand-primary;
+                    }
+                }
+            }
+        }
+    }
+}
+
+.dropdown-toggle {
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+.dropdown-menu{
+    border: none !important;
+    font-size: 13px !important;
+}
+
+.drop-menu{
+    ul{
+        list-style: square;
+        margin-left: 20px;
+        padding: 0px;
+    }
+}

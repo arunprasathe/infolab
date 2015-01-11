@@ -1,0 +1,400 @@
+package sg.infolab.audit.controller;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.portlet.ActionRequest;
+import javax.portlet.ActionResponse;
+import javax.portlet.PortletException;
+import javax.portlet.PortletRequest;
+import javax.portlet.PortletSession;
+import javax.portlet.RenderRequest;
+import javax.portlet.RenderResponse;
+import javax.portlet.ResourceRequest;
+import javax.portlet.ResourceResponse;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.portlet.bind.annotation.ResourceMapping;
+
+import sg.infolab.audit.constant.AuditPortletConstant;
+import sg.infolab.common.admin.domain.CTList;
+import sg.infolab.common.admin.domain.Module;
+import sg.infolab.common.admin.domain.User;
+import sg.infolab.common.admin.service.CTService;
+import sg.infolab.common.admin.service.ModuleService;
+import sg.infolab.common.admin.service.UserService;
+import sg.infolab.common.audit.constant.AuditConstant;
+import sg.infolab.common.audit.search.AuditSearch;
+import sg.infolab.common.audit.service.AuditService;
+import sg.infolab.core.bean.UserLoginSession;
+import sg.infolab.core.constant.InfolabConstant;
+import sg.infolab.core.exception.NonSystemLevelException;
+import sg.infolab.core.exception.SystemLevelException;
+import sg.infolab.core.pager.Pager;
+import sg.infolab.core.portlet.AbstractInfolabController;
+import sg.infolab.core.portlet.AbstractInfolabPlutoController;
+import sg.infolab.core.util.InfolabUtil;
+
+import com.google.gson.Gson;
+
+@Controller
+@RequestMapping("VIEW")
+public class AuditController extends AbstractInfolabPlutoController {
+
+	public static final String VIEW_JSP = "auditList";
+
+	private static Logger logger = Logger.getLogger(AuditController.class);
+
+	@Autowired
+	AuditService auditService;
+
+	@Autowired
+	CTService ctService;
+
+	@Autowired
+	UserService userService;
+
+	@Autowired
+	ModuleService moduleService;
+
+	@RequestMapping
+	public String defaults(RenderRequest request, RenderResponse response) {
+		List<Module> modules = moduleService.getAllModulesForAudit();
+		List<User> users = userService.selectAllUserForAudit();
+		request.setAttribute("modules", modules);
+		request.setAttribute("users", users);
+		return VIEW_JSP;
+	}
+
+	@ResourceMapping("listAuditJson")
+	public void viewJson(@ModelAttribute("pager") Pager pager, ResourceRequest request, ResourceResponse response) {
+		try {
+			UserLoginSession session = getUserLogin(request.getPortletSession());
+			if (session != null && session.isRoleSuperAdmin()) {
+				Gson gson = new Gson();
+				pager.setSortColumnName(AuditConstant.SORT_AUDIT_TITLE);
+				pager.setSortType(InfolabConstant.SORT_TYPE_ASC);
+				auditService.getAuditTrailSearchPagination(pager, generateAuditSearch(pager));
+				String json = gson.toJson(pager);
+				response.getWriter().write(json);
+			}
+		} catch (Exception ex) {
+			logger.error("AuditController->viewJson", ex);
+		}
+	}
+
+	private AuditSearch generateAuditSearch(Pager pager) {
+		AuditSearch auditSearch = new AuditSearch();
+		auditSearch.setModuleIDArr(getStringArr(pager, "moduleIds"));
+		auditSearch.setUserIDArr(getStringArr(pager, "userIds"));
+		auditSearch.setFromDate((String)pager.getSearchCriteria().get("fromDate"));
+		auditSearch.setToDate((String)pager.getSearchCriteria().get("toDate"));
+		return auditSearch;
+	}
+
+	private String[] getStringArr(Pager pager, String key) {
+		if (pager.getSearchCriteria().get(key) != null) {
+			Object value = pager.getSearchCriteria().get(key);
+			if (pager.getSearchCriteria().get(key) instanceof String) {
+				return new String[] { (String) value };
+			} else {
+				return (String[]) value;
+			}
+		}
+		return null;
+	}
+
+	public void query(RenderRequest request, RenderResponse response) {
+		// Set the MIME type for the render response
+		response.setContentType(request.getResponseContentType());
+		AuditPortletSessionBean sessionBean = getSessionBean(request);
+		boolean first = false;
+		try {
+			try {
+				if (!StringUtils.isEmpty(getParameter(request, InfolabConstant.OPEN_MENU))) {
+					first = true;
+					sessionBean.setPager(new Pager());
+					sessionBean.setAuditSearch(new AuditSearch());
+					sessionBean.getPager().setSortColumnName(AuditConstant.SORT_AUDIT_TITLE);
+					sessionBean.getPager().setSortType(InfolabConstant.SORT_TYPE_ASC);
+					sessionBean.getPager().setPage(1);
+					sessionBean.getPager().setResultPerPage(InfolabConstant.DEFAULT_RESULT_PER_PAGE);
+					sessionBean.setSearchType(null);
+				}
+				populateUserList(sessionBean);
+				populateModuleList(sessionBean);
+				populateArchiveMonthYearList(sessionBean);
+			} catch (Exception e) {
+				logger.error("ERROR in retrieving list: " + e.getMessage());
+			}
+
+			if (!StringUtils.isEmpty(sessionBean.getSearchType())) {
+
+				Pager pager = null;
+				sessionBean.getPager().setAllRecord(false);
+				if (AuditPortletConstant.SEARCH_TYPE_ARCHIVE.equals(sessionBean.getSearchType())) {
+					pager = auditService.getAuditTrailByArchiveDatePagination(sessionBean.getPager(), sessionBean.getAuditSearch());
+				} else {
+					pager = auditService.getAuditTrailSearchPagination(sessionBean.getPager(), sessionBean.getAuditSearch());
+				}
+
+				sessionBean.setPager(pager);
+			}
+
+			request.setAttribute(InfolabConstant.SESSION_BEAN, sessionBean);
+			request.setAttribute("userLoginObj", getUserLogin(request.getPortletSession()));
+			String fValue = "1";
+			if (!first) {
+				fValue = "2";
+			}
+			request.setAttribute("first", fValue);
+
+		} catch (Exception e) {
+			System.out.println("ERROR -> " + e.getMessage());
+			logger.debug(e.getMessage());
+		}
+	}
+
+	private void populateModuleList(AuditPortletSessionBean sessionBean) throws SystemLevelException, NonSystemLevelException {
+		List moduleList = ctService.getCTListByMasterCode(InfolabConstant.MODULE_NAME);
+		if (moduleList != null && !moduleList.isEmpty()) {
+			AuditSearch as = sessionBean.getAuditSearch();
+			List tempSelectedList = null;
+			if (as.getModuleIDArr() != null) {
+
+				tempSelectedList = new ArrayList();
+				List removedList = new ArrayList();
+				int moduleListSize = moduleList.size();
+				int len = as.getModuleIDArr().length;
+				for (int i = 0; i < moduleListSize; i++) {
+					boolean flag = false;
+					CTList cti = (CTList) moduleList.get(i);
+					for (int j = 0; j < len && flag != true; j++) {
+						String code = as.getModuleIDArr()[j];
+						if (cti.getCTListCode() != null && cti.getCTListCode().equalsIgnoreCase(code)) {
+							flag = true;
+							tempSelectedList.add(cti);
+							removedList.add(cti);
+						}
+					}
+				}
+
+				for (Iterator iterator = removedList.iterator(); iterator.hasNext();) {
+					CTList cti = (CTList) iterator.next();
+					moduleList.remove(cti);
+				}
+			}
+			sessionBean.setModuleList(moduleList);
+			sessionBean.setSelectedModuleList(tempSelectedList);
+		}
+	}
+
+	private void populateUserList(AuditPortletSessionBean sessionBean) throws SystemLevelException, NonSystemLevelException {
+		// System.out.println("Populate User List");
+		// List userList = new ArrayList();
+		//
+		// if (userList != null && !userList.isEmpty()) {
+		//
+		// UserLogin us = new UserLogin();
+		// us.setUserId(InfolabConstant.AUDIT_PUBLIC_USER);
+		// us.setUserName(InfolabConstant.AUDIT_PUBLIC_USER);
+		// userList.add(0, us);
+		//
+		// Collections.sort(userList, new UserNameSort());
+		//
+		// AuditSearch as = sessionBean.getAuditSearch();
+		// List tempSelectedList = null;
+		// if (as.getUserIDArr() != null) {
+		// tempSelectedList = new ArrayList();
+		// List removedList = new ArrayList();
+		// int userListSize = userList.size();
+		// int len = as.getUserIDArr().length;
+		// for (int i = 0; i < userListSize; i++) {
+		// boolean flag = false;
+		// UserLogin ul = (UserLogin) userList.get(i);
+		// for (int j = 0; j < len && flag != true; j++) {
+		// String code = as.getUserIDArr()[j];
+		// if (ul.getUserId() != null && ul.getUserId().equalsIgnoreCase(code))
+		// {
+		// flag = true;
+		// tempSelectedList.add(ul);
+		// removedList.add(ul);
+		// }
+		// }
+		// }
+		//
+		// for (Iterator iterator = removedList.iterator(); iterator.hasNext();)
+		// {
+		// UserLogin ul = (UserLogin) iterator.next();
+		// userList.remove(ul);
+		// }
+		//
+		// }
+		//
+		// sessionBean.setUserList(userList);
+		// sessionBean.setSelectedUserList(tempSelectedList);
+		// }
+	}
+
+	private void populateArchiveMonthYearList(AuditPortletSessionBean sessionBean) throws SystemLevelException, NonSystemLevelException {
+		List monthList = ctService.getCTListByMasterCode(InfolabConstant.CTMASTER_ARCHIVE_MONTH);
+		sessionBean.setArchiveMonthList(monthList);
+		sessionBean.setArchiveYearList(InfolabUtil.getArchiveYearList());
+	}
+
+	/**
+	 * Process an action request.
+	 * 
+	 * @see javax.portlet.Portlet#processAction(javax.portlet.ActionRequest,
+	 *      javax.portlet.ActionResponse)
+	 */
+	public void processAction(ActionRequest request, ActionResponse response) throws PortletException, java.io.IOException {
+
+		AuditPortletSessionBean sessionBean = getSessionBean(request);
+
+		String action = request.getParameter(InfolabConstant.ACTION);
+
+		if (AuditPortletConstant.ACTION_SEARCH.equalsIgnoreCase(action)) {
+			sessionBean.setSearchType(AuditPortletConstant.SEARCH_TYPE_AUDIT);
+			resetPagingSearch(sessionBean);
+			populateAuditSearch(request, sessionBean);
+
+		} else if (AuditPortletConstant.ACTION_ARCHIVE_SEARCH.equalsIgnoreCase(action)) {
+
+			sessionBean.setSearchType(AuditPortletConstant.SEARCH_TYPE_ARCHIVE);
+			resetPagingSearch(sessionBean);
+			populateArchiveSearch(request, sessionBean);
+
+		} else if (AuditPortletConstant.ACTION_AUDIT_ARCHIVE.equalsIgnoreCase(action)) {
+
+			String[] archiveArr = request.getParameterValues(AuditPortletConstant.FIELD_CHK_AUDIT_ARCHIVE);
+			try {
+				auditService.updateAuditTrail(archiveArr);
+				sessionBean.getPager().setPage(1);
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+			}
+
+		} else if (AuditPortletConstant.ACTION_AUDIT_EXPORT.equalsIgnoreCase(action)) {
+
+		} else if (InfolabConstant.ACTION_PAGINATION_PAGE.equalsIgnoreCase(action)) {
+			String type = request.getParameter("type");
+			System.out.println("TYPE -> " + type);
+			String page = null;
+			if (!StringUtils.isEmpty(type)) {
+				if ("1".equalsIgnoreCase(type)) {
+					page = request.getParameter(AuditPortletConstant.FIELD_PAGE1);
+				} else {
+					page = request.getParameter(AuditPortletConstant.FIELD_PAGE2);
+				}
+			} else {
+				page = request.getParameter(AuditPortletConstant.FIELD_PAGE1);
+			}
+			if (!StringUtils.isEmpty(page)) {
+				sessionBean.getPager().setPage(Integer.parseInt(page));
+			}
+		} else if (InfolabConstant.ACTION_PAGINATION_RESULT_PER_PAGE.equalsIgnoreCase(action)) {
+
+			sessionBean.getPager().setPage(1);
+			String resultPerPage = request.getParameter(AuditPortletConstant.FIELD_RESULT_PER_PAGE);
+			logger.debug("RESULT PER PAGE -> " + resultPerPage);
+			if (!StringUtils.isEmpty(resultPerPage)) {
+				sessionBean.getPager().setResultPerPage(Integer.parseInt(resultPerPage));
+			}
+
+		} else if (AuditPortletConstant.ACTION_SORTING.equalsIgnoreCase(action)) {
+			String sortColumnName = request.getParameter("sortColumnName");
+			if (!StringUtils.isEmpty(sortColumnName)) {
+				if (sortColumnName.equalsIgnoreCase(sessionBean.getPager().getSortColumnName())) {
+					String sortType = "";
+					if (InfolabConstant.SORT_TYPE_ASC.equalsIgnoreCase(sessionBean.getPager().getSortType()))
+						sortType = InfolabConstant.SORT_TYPE_DESC;
+					else
+						sortType = InfolabConstant.SORT_TYPE_ASC;
+					sessionBean.getPager().setSortType(sortType);
+				} else {
+					sessionBean.getPager().setSortColumnName(sortColumnName);
+					sessionBean.getPager().setSortType(InfolabConstant.SORT_TYPE_ASC);
+				}
+			}
+		}
+
+		request.setAttribute(InfolabConstant.SESSION_BEAN, sessionBean);
+	}
+
+	private void resetPagingSearch(AuditPortletSessionBean sessionBean) {
+		sessionBean.getPager().setPage(1);
+		sessionBean.getPager().setSortColumnName(AuditConstant.SORT_AUDIT_TITLE);
+		sessionBean.getPager().setSortType(InfolabConstant.SORT_TYPE_ASC);
+	}
+
+	private void populateAuditSearch(ActionRequest request, AuditPortletSessionBean sessionBean) {
+		AuditSearch as = new AuditSearch();
+
+		/*
+		 * System.out.println("*testa" + ArrayUtils.toString(moduleIDArr));
+		 * Enumeration e = request.getParameterNames();
+		 * while(e.hasMoreElements()) { System.out.println("testa " +
+		 * e.nextElement()); }
+		 */
+
+		String[] moduleIDArr = request.getParameterValues(AuditPortletConstant.FIELD_SEL_AUDIT_MODULE_RIGHT);
+		as.setModuleIDArr(moduleIDArr);
+
+		String[] userIDArr = request.getParameterValues(AuditPortletConstant.FIELD_SEL_AUDIT_USERNAME_RIGHT);
+		as.setUserIDArr(userIDArr);
+
+		String fromDate = request.getParameter(AuditPortletConstant.FIELD_FROM_DATE);
+		as.setFromDate(fromDate);
+		System.out.println("From Date " + fromDate);
+
+		String toDate = request.getParameter(AuditPortletConstant.FIELD_TO_DATE);
+		as.setToDate(toDate);
+		System.out.println("To Date " + toDate);
+		sessionBean.setAuditSearch(as);
+	}
+
+	private void populateArchiveSearch(ActionRequest request, AuditPortletSessionBean sessionBean) {
+		AuditSearch as = new AuditSearch();
+		String mth = request.getParameter(AuditPortletConstant.FIELD_SEL_AUDIT_MONTH);
+		System.out.println("MONTH -> " + mth);
+		if (!StringUtils.isEmpty(mth))
+			as.setArchiveMonth(Integer.parseInt(mth));
+		String year = request.getParameter(AuditPortletConstant.FIELD_SEL_AUDIT_YEAR);
+		System.out.println("YEAR -> " + year);
+		if (!StringUtils.isEmpty(year))
+			as.setArchiveYear(Integer.parseInt(year));
+		sessionBean.setAuditSearch(as);
+
+		// clear audit search session
+		sessionBean.setSelectedModuleList(null);
+		sessionBean.setSelectedUserList(null);
+	}
+
+	private static AuditPortletSessionBean getSessionBean(PortletRequest request) {
+		PortletSession session = request.getPortletSession();
+		if (session == null)
+			return null;
+		AuditPortletSessionBean sessionBean = (AuditPortletSessionBean) session.getAttribute(InfolabConstant.SESSION_BEAN);
+		if (sessionBean == null) {
+			sessionBean = new AuditPortletSessionBean();
+			sessionBean.setPager(new Pager());
+			sessionBean.setAuditSearch(new AuditSearch());
+			sessionBean.getPager().setSortColumnName(AuditConstant.SORT_AUDIT_DATE);
+			sessionBean.getPager().setSortType(InfolabConstant.SORT_TYPE_DESC);
+			sessionBean.getPager().setPage(1);
+			sessionBean.getPager().setResultPerPage(InfolabConstant.DEFAULT_RESULT_PER_PAGE);
+			session.setAttribute(InfolabConstant.SESSION_BEAN, sessionBean);
+			session.setAttribute(InfolabConstant.SESSION_BEAN, sessionBean, PortletSession.PORTLET_SCOPE);
+			session.setAttribute(InfolabConstant.SESSION_BEAN, sessionBean, PortletSession.APPLICATION_SCOPE);
+		}
+		return sessionBean;
+	}
+
+}

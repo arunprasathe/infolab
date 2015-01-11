@@ -1,0 +1,530 @@
+/******************************************************************
+Site Name:
+Author:
+
+Stylesheet:
+******************************************************************/
+
+html {
+  font-size: 62.5%;
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+
+body {
+  font-family: @font-family-base;
+  font-size: @font-size-base;
+  line-height: @line-height-base;
+  color: @text-color;
+  background-color: @body-bg;
+}
+
+
+/*********************
+TYPOGRAPHY
+*********************/
+
+@body-font: 'Arial', sans-serif; 
+@display-font: 'Myriad Pro', sans-serif;
+
+
+/* text alignment */
+.text-left   { text-align: left; }
+.text-center { text-align: center; }
+.text-right  { text-align: right; }
+
+/*********************
+BORDER RADIUS
+*********************/
+
+/* 
+NOTE: For older browser support (and some mobile), 
+don't use the shorthand to define *different* corners. 
+
+USAGE: .border-radius(4px); 
+
+*/
+.border-radius(@radius: 4px) {
+  -webkit-border-radius: @radius;
+     -moz-border-radius: @radius;
+          border-radius: @radius;
+}
+
+
+/*********************
+TRANISTION
+*********************/
+
+/* .transition(all,2s); */
+.transition(@what: all, @time: 0.2s, @transition: ease-in-out) {
+	-webkit-transition: @what @time @transition;
+	-moz-transition:    @what @time @transition;
+	-ms-transition:     @what @time @transition;
+	-o-transition:      @what @time @transition;
+	transition:         @what @time @transition;
+}
+
+/*********************
+CSS3 GRADIENTS
+Be careful with these since they can 
+really slow down your CSS. Don't overdo it.
+*********************/
+
+/* .css-gradient(#dfdfdf,#f8f8f8); */
+.css-gradient(@from: #dfdfdf, @to: #f8f8f8) {
+	background-color: @to;
+	background-image: -webkit-gradient(linear, left top, left bottom, from(@from), to(@to));
+	background-image: -webkit-linear-gradient(top, @from, @to);
+	background-image: -moz-linear-gradient(top, @from, @to);
+	background-image: -o-linear-gradient(top, @from, @to);
+	background-image: linear-gradient(to bottom, @from, @to);
+}
+
+/*********************
+BOX SHADOW
+*********************/
+
+/* .boxShadow(0,0,4px,0,#444); */
+.boxShadow(@x: 0, @y: 0, @radius: 4px, @spread: 0, @color: rgba(0,0,0,0.5)) when (isnumber(@x)) {
+	-webkit-box-shadow: @x @y @radius @spread @color;
+	   -moz-box-shadow: @x @y @radius @spread @color;
+			box-shadow: @x @y @radius @spread @color; 
+}
+/* .boxShadow(none); */
+.boxShadow(@x: none) when (iskeyword(@x)) {
+	-webkit-box-shadow: @x;
+	   -moz-box-shadow: @x;
+			box-shadow: @x; 
+}
+
+/*********************
+BUTTONS
+*********************/
+
+.button, .button:visited {
+	padding: 6px 14px;
+	color: @white;
+	display: inline-block;
+	font-size: 12px;
+	font-weight: bold;
+	text-decoration: none;
+	text-shadow: 0 1px rgba(0,0,0, .75);
+	cursor: pointer;
+	line-height: 21px;
+	.transition();
+	.border-radius(4px);
+	border: none;
+	background: @blue;
+
+	&:hover, &:focus {
+		color: @white;
+		background: darken(@blue, 10%);
+	}
+	
+	&:active {
+		.css-gradient(darken(@blue, 5%),@blue);
+	}
+	
+	a {
+	    color: @white;
+	    
+	    &:hover, &:focus {
+	        color: @white;
+	    }
+	}
+}
+
+.button-grey, .button-grey:visited {
+	padding: 6px 14px;
+	color: @white;
+	display: inline-block;
+	font-size: 12px;
+	font-weight: bold;
+	text-decoration: none;
+	text-shadow: 0 1px rgba(0,0,0, .75);
+	cursor: pointer;
+	line-height: 21px;
+	.transition();
+	.border-radius(4px);
+	border: none;
+	background: lighten(@grey, 30%);
+
+	&:hover, &:focus {
+		color: @white;
+		background: @grey;
+	}
+	
+	&:active {
+		.css-gradient(@grey,lighten(@grey, 50%));
+	}
+	
+	a {
+	    color: @white;
+	    
+	    &:hover, &:focus {
+	        color: @white;
+	    }
+	}
+}
+
+.button-green, .button-green:visited {
+	padding: 6px 14px;
+	color: @white;
+	display: inline-block;
+	font-size: 12px;
+	font-weight: bold;
+	text-decoration: none;
+	text-shadow: 0 1px rgba(0,0,0, .75);
+	cursor: pointer;
+	line-height: 21px;
+	.transition();
+	.border-radius(4px);
+	border: none;
+	background: @green;
+
+	&:hover, &:focus {
+		color: @white;
+		background: @blue;
+	}
+	
+	&:active {
+		.css-gradient(@blue,lighten(@blue, 10%));
+	}
+	
+	a {
+	    color: @white;
+	    
+	    &:hover, &:focus {
+	        color: @white;
+	    }
+	}
+}
+
+.button-login, .button-login:visited {
+	padding: 6px 14px;
+	color: @white;
+	display: inline-block;
+	font-size: 12px;
+	font-weight: bold;
+	text-decoration: none;
+	text-shadow: 0 1px rgba(0,0,0, .75);
+	cursor: pointer;
+	line-height: 21px;
+	.transition();
+	.border-radius(4px);
+	border: none;
+	background: darken(@blue, 10%);
+
+	&:hover, &:focus {
+		color: @white;
+		background: darken(@blue, 20%);
+	}
+	
+	&:active {
+		.css-gradient(darken(@blue, 20%),darken(@blue, 10%));
+	}
+	
+	a {
+	    color: @white;
+	    
+	    &:hover, &:focus {
+	        color: @white;
+	    }
+	}
+}
+
+.action-button, .action-button:visited {
+	padding: 3px 7px;
+	color: @white;
+	display: inline-block;
+	font-size: 12px;
+	font-weight: bold;
+	text-decoration: none;
+	border: none;
+	cursor: pointer;
+	line-height: 21px;
+	.transition();
+	.border-radius(4px);
+	background: lighten(@grey, 30%);
+
+	&:hover, &:focus {
+		color: @white;
+		background: @blue;
+	}
+	
+	&:active {
+		.css-gradient(@blue,lighten(@blue, 50%));
+	}
+	
+	a {
+	    color: @white;
+	    
+	    &:hover, &:focus {
+	        color: @white;
+	    }
+	}
+}
+
+.button-topics-green, .button-topics-green:visited {
+	padding: 3px 5px;
+	margin-bottom: 3px;
+	color: @grey;
+	display: inline-block;
+	font-size: 11px;
+	font-weight: 400;
+	text-decoration: none;
+	cursor: pointer;
+	line-height: 15px;
+	.transition();
+	.border-radius(4px);
+	border: none;
+	background: @green;
+
+	&:hover, &:focus {
+		color: @grey;
+		background: darken(@green, 20%);
+	}
+	
+	&:active {
+		background: darken(@green, 20%);
+	}
+	
+	a {
+	    color: @grey;
+	    
+	    &:hover, &:focus {
+	        color: @grey;
+	    }
+	}
+}
+
+.button-topics-white, .button-topics-white:visited {
+	padding: 3px 5px;
+	margin-bottom: 3px;
+	color: @grey;
+	display: inline-block;
+	font-size: 11px;
+	font-weight: 400;
+	text-decoration: none;
+	cursor: pointer;
+	line-height: 15px;
+	.transition();
+	.border-radius(4px);
+	border: none;
+	background: @white;
+
+	&:hover, &:focus {
+		color: @grey;
+		background: @green;
+	}
+	
+	&:active {
+		background: @green;
+	}
+	
+	a {
+	    color: @grey;
+	    
+	    &:hover, &:focus {
+	        color: @grey;
+	    }
+	}
+}
+
+.button-bizsafe-green, .button-bizsafe-green:visited {
+	padding: 15px;
+	margin-bottom: 3px;
+	color: @white;
+	display: block;
+	font-size: 16px;
+	font-weight: 600;
+	text-decoration: none;
+    text-align: center;
+	cursor: pointer;
+	line-height: 14px;
+	.transition();
+	.border-radius(4px);
+	border: none;
+	background: darken(@green, 20%);
+
+	&:hover, &:focus {
+		color: @white;
+		background: darken(@green, 40%);
+	}
+	
+	&:active {
+		background: darken(@green, 40%);
+	}
+	
+	a {
+	    color: @white;
+	    
+	    &:hover, &:focus {
+	        color: @white;
+	    }
+	}
+}
+
+/*********************
+FLOAT CONTROLS
+*********************/
+
+.left {
+    position: relative;
+    float: left;
+}
+
+.right {
+    position: relative;
+    float: right;
+}
+
+.center {
+    margin: 0 auto;
+    float: none;
+}
+
+/*********************
+Z-INDEX CONTROLS
+*********************/
+.index-0 {
+    position: relative;
+    z-index: 0;
+}
+
+.index-10 {
+    position: relative;
+    z-index: 10;
+}
+
+.index-100 {
+    position: relative;
+    z-index: 100;
+}
+
+.index-1000 {
+    position: relative;
+    z-index: 1000;
+}
+
+
+/*********************
+LINES
+*********************/
+
+.bottom-line {
+    border-bottom: solid 1px lighten(@grey, 40%);
+}
+
+.bottom-line-dotted {
+    border-bottom: dotted 1px darken(@blue, 60%);
+}
+
+.bottom-line-dashed {
+    border-bottom: dashed 1px lighten(@grey, 40%);
+}
+
+.left-line-blue {
+    border-left: solid 1px @blue;
+}
+
+.left-line {
+    border-left: solid 1px lighten(@grey, 40%);
+}
+
+.top-line-dotted {
+    border-top: dotted 1px darken(@blue, 60%);
+}
+
+.top-line-dashed {
+    border-top: dashed 1px lighten(@grey, 40%);
+}
+
+.tiny-text {
+    font-size: 10px;
+    
+    a {
+        font-size: 10px;
+    }
+}
+
+.small-text {
+    font-size: 12px
+}
+
+a.white {
+    color: @white;
+    
+    &:hover, &:focus {
+        color: @white;
+    }
+}
+
+h1.white {
+    color: @white;
+}
+
+red {
+    
+    color: @red;
+    
+    &:hover, &:focus {
+        color: @red;
+    }
+}
+
+.all-text-white {
+    color: @white;
+    
+    a, a:visited {
+        color: @white;
+        
+        &:hover, &:focus {
+            color: @green;
+        }
+    }
+}
+
+.absolute-align {
+  .vertical-absolute-align();
+  .horizontal-absolute-align();
+}
+
+.vertical-absolute-align,
+.vertical-align {
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
+
+.vertical-align {
+  position: relative;
+}
+
+.vertical-absolute-align {
+  position: absolute;
+}
+
+.horizontal-absolute-align,
+.horizontal-align {
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+  -ms-transform: translateX(-50%);
+  transform: translateX(-50%);
+}
+
+.horizontal-align {
+  position: relative;
+}
+
+.horizontal-absolute-align {
+  position: absolute;
+}
+
+.col-first {
+    padding-right: 0;
+}
+
+.col-last {
+    padding-left: 0;
+}

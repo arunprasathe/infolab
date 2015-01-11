@@ -1,0 +1,67 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+
+// NO NEED CHANGE
+sourceCompatibility = 1.7
+version = '1.0'
+jar {
+	manifest {
+		attributes 'Implementation-Title': 'Gradle Quickstart', 'Implementation-Version': version
+	}
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ["src"]
+        }
+    }
+}
+
+// NO NEED CHANGE
+def devlibDir = "../InfolabDevLibraries"
+def libDir = "../InfolabLibraries"
+def plutoLib = "C:/developments/java/servers/pluto-2.0.3/lib/shared/Libraries"
+def propsPath = "../InfolabProperties/gradle.properties";
+def props = new Properties();
+
+file(propsPath).withReader{
+	reader ->
+		props.load(reader);
+		println props["pluto.path"]
+}
+def target = props["pluto.path"] + project.name
+def webapps = props["pluto.webappspath"]
+println props["pluto.webappspath"]
+dependencies {
+	runtime fileTree(dir: devlibDir, include: '*.jar')
+	runtime fileTree(dir: libDir, include: '*.jar')
+	compile fileTree(dir: devlibDir, include: '*.jar')
+	compile fileTree(dir: libDir, include: '*.jar')
+	compile fileTree(dir: plutoLib, include: '*.jar')
+}
+
+
+test { systemProperties 'property': 'value' }
+
+uploadArchives {
+	repositories { flatDir { dirs 'repos' } }
+}
+
+task packageWar(type:Jar) {
+	archiveName = project.name + '.war'
+	from ('WebContent')
+	from ('build/classes/main'){ into 'WEB-INF/classes' }
+	exclude '**/*.bak'
+	exclude '**/*Test*.class'
+	includeEmptyDirs = true
+}
+
+task deploy(type: Copy) {
+	from 'libs/InfolabSelfAssessment.war'	
+	into webapps
+	exclude '**/*.bak'
+	exclude '**/*Test*.class'
+	includeEmptyDirs = true
+}

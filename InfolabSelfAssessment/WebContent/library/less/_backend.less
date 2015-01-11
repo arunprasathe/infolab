@@ -1,0 +1,145 @@
+
+.active{font-weight: bold !important;}
+
+.cms-sidebar {
+    display: block;
+    width: 235px;
+    height: auto;
+    padding: 10px 0;
+    margin-left: 20px;
+    margin-right: 10px;
+    float: left;
+    background-color: @green;
+    .border-radius(4px);
+
+    .title {
+        height: 30px;
+        padding: 3px 10px;
+        background-color: @green;
+        font-size: 14px;
+        color: @black;
+        font-weight: 600;
+    }
+    
+    li.list-side-parent{
+        a:after{
+            content: url('../images/asc.gif');
+            float: right;
+        }
+        
+        li a:after{
+            content: '';
+        }
+    }
+    
+    li.list-side-parent-level2{
+        a:after{
+            content: url('../images/asc.gif') !important;
+            float: right;
+        }
+        
+        li a:after{
+            content: '' !important;
+        }
+    }
+    
+    .inner {
+        padding: 3px 10px 10px 10px;
+        background-color: @green;
+        font-size: 14px;
+        color: @black;
+        
+        h3 {
+            margin: 0;
+            font-size: 14px;
+            color: @black;
+            font-weight: 600;
+        }
+        
+        a {
+            color: @black;
+            
+            &:hover, &:focus {
+                color: @blue;
+            }
+        }
+    }
+
+    ul {
+        margin: 0;
+        background-color: lighten(@green, 20%);
+        
+
+        li {
+            padding: 10px;
+            margin-top: 0;
+            color: @grey;
+            line-height: 15px;
+            
+            &:nth-child(odd) {
+            background-color: lighten(@green, 35%);
+        }
+            
+            &.alt {
+                background-color: lighten(@green, 35%);
+            }
+
+            a {
+                color: @grey;
+                font-size: 13px;
+                line-height: 15px;
+
+                &:hover, &:focus {
+                    color: darken(@green, 60%);
+                }
+            }
+            
+            ul.sub {
+                position: relative;
+                padding: 0;
+                background-color: lighten(@green, 35%);
+                
+                li {
+                    margin: 0 0 0 20px;
+                    padding: 5px 0;
+                    list-style: square;
+                }
+            }
+        }
+
+        .expand {
+        }
+
+        .collapse {
+        }
+
+        .sidebar-panel {
+            height: 20px;
+            padding: 9px 35px 9px 15px;
+            font-size: 15px;
+            font-weight: 600;
+            color: @white;
+            cursor: pointer;
+
+            &:hover, &:focus {
+                background-color: darken(@blue, 60%);
+            }
+
+            a {
+                color: @white;
+            }
+        }
+
+        .sidebar-content {
+            padding: 10px 15px;
+            font-size: 13px;
+            background-color: lighten(@grey, 55%);
+
+            li {
+                margin-left: 17px;
+                list-style: square;
+                color: darken(@blue, 60%);
+            }
+        }
+    }
+}

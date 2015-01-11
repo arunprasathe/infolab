@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans default-lazy-init="false"
+	xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:jee="http://www.springframework.org/schema/jee" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+           http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+           http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-4.0.xsd
+           http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd 
+           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+	<import resource="classpath:common-selfassessment-spring-service.xml" />
+	<import resource="classpath:common-wshassessment-spring-service.xml" />
+	<import resource="classpath:common-admin-spring-service.xml" />
+	<import resource="classpath:common-login-spring-service.xml" />
+	<import resource="classpath:common-audit-spring-service.xml" />
+	<import resource="classpath:common-cms-spring-service.xml" />
+	
+	<context:component-scan base-package="sg.infolab.selfassessment.controller"/>
+	<import resource="classpath:common-spring-web.xml" />
+</beans>
+	

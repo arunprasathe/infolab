@@ -1,0 +1,176 @@
+package sg.infolab.audit.controller;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import javax.portlet.PortletSession;
+import javax.portlet.RenderRequest;
+import javax.portlet.RenderResponse;
+import javax.portlet.ResourceRequest;
+import javax.portlet.ResourceResponse;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.portlet.bind.annotation.ResourceMapping;
+
+import sg.infolab.audit.constant.AuditPortletConstant;
+import sg.infolab.common.admin.domain.CTList;
+import sg.infolab.common.admin.domain.Module;
+import sg.infolab.common.admin.domain.User;
+import sg.infolab.common.admin.service.CTService;
+import sg.infolab.common.admin.service.ModuleService;
+import sg.infolab.common.admin.service.UserService;
+import sg.infolab.common.audit.constant.AuditConstant;
+import sg.infolab.common.audit.search.AuditSearch;
+import sg.infolab.common.audit.service.AuditService;
+import sg.infolab.core.bean.UserLoginSession;
+import sg.infolab.core.constant.InfolabConstant;
+import sg.infolab.core.pager.Pager;
+import sg.infolab.core.portlet.AbstractInfolabController;
+import sg.infolab.core.util.InfolabUtil;
+
+@Controller
+@RequestMapping("VIEW")
+public class AuditController extends AbstractInfolabController {
+
+	private static Logger logger = Logger.getLogger(AuditController.class);
+
+	@Autowired
+	AuditService auditService;
+
+	@Autowired
+	CTService ctService;
+
+	@Autowired
+	UserService userService;
+
+	@Autowired
+	ModuleService moduleService;
+
+	@RequestMapping
+	public String defaults(RenderRequest request, RenderResponse response) {
+		try {
+			logger.info("[AuditController]->[defaults]->[start]");
+			List<Module> modules = getModules();
+			List<User> users = userService.selectAllUserForAudit();
+			List<CTList> monthList = ctService.getCTListByMasterCode(InfolabConstant.CTMASTER_ARCHIVE_MONTH);
+			request.setAttribute("modules", modules);
+			request.setAttribute("users", users);
+			request.setAttribute("archiveMonthList", monthList);
+			request.setAttribute("archiveYearList", InfolabUtil.getArchiveYearList());
+			// set the current Login access rights
+			request.setAttribute("userLoginObj", getUserLogin(request.getPortletSession()));
+			logger.info("[AuditController]->[defaults]->[end]");
+		} catch (Exception ex) {
+			logger.error("[AuditController]->[defaults]->[exception]", ex);
+		}
+		return AuditPortletConstant.JSP_ADUIT_LIST;
+	}
+
+	@ResourceMapping("archiveAuditJson")
+	public void archiveAuditJson(String[] ids, ResourceRequest request, ResourceResponse response) {
+		logger.info("[AuditController]->[archiveAuditJson]->[start]");
+		Map map = new HashMap();
+		try {
+			String[] archiveArr = request.getParameterValues(AuditPortletConstant.FIELD_CHK_AUDIT_ARCHIVE);
+			logger.info("Checkbox fields " + archiveArr);
+			auditService.updateAuditTrail(archiveArr);
+			map.put(InfolabConstant.RESULT, InfolabConstant.YES);
+			map.put(InfolabConstant.MESSAGE, "Submit Successfully.");
+		} catch (Exception ex) {
+			logger.info("[AuditController]->[archiveAuditJson]->[exception]", ex);
+			map.put(InfolabConstant.RESULT, InfolabConstant.NO);
+			map.put(InfolabConstant.MESSAGE, "Submit Unsuccessfully.");
+		}
+		super.printJson(response, map);
+		logger.info("[AuditController]->[archiveAuditJson]->[end]");
+	}
+
+	@ResourceMapping("listAuditJson")
+	public void viewJson(@ModelAttribute("pager") Pager pager, ResourceRequest request, ResourceResponse response) {
+		logger.info("[AuditController]->[viewJson]->[start]");
+		Map map = new HashMap();
+		AuditSearch auditSearch = null;
+		try {
+			UserLoginSession session = getUserLogin(request.getPortletSession());
+			if (session != null && session.isRoleSuperAdmin()) {
+				String sortColumnName = StringUtils.defaultIfEmpty(pager.getSortColumnName(), AuditConstant.SORT_AUDIT_TITLE);
+				String sortType = StringUtils.defaultIfEmpty(pager.getSortType(), InfolabConstant.SORT_TYPE_ASC);
+				String isArchiveSort = StringUtils.defaultIfEmpty((String) pager.getSearchCriteria().get("isArchiveSort"), InfolabConstant.NO);
+				pager.setSortColumnName(sortColumnName);
+				pager.setSortType(sortType);
+
+				if (InfolabConstant.YES.equalsIgnoreCase(isArchiveSort)) {
+					auditSearch = generateArchiveSearch(pager, request);
+					auditService.getAuditTrailByArchiveDatePagination(pager, auditSearch);
+				} else {
+					auditSearch = generateAuditSearch(pager);
+					auditService.getAuditTrailSearchPagination(pager, auditSearch);
+				}
+
+				map.put(InfolabConstant.RESULT, InfolabConstant.YES);
+				map.put(InfolabConstant.DATAS, pager);
+				request.getPortletSession().setAttribute(AuditPortletConstant.AUDIT_PAGER, pager, PortletSession.APPLICATION_SCOPE);
+				request.getPortletSession().setAttribute(AuditPortletConstant.ACTION_SEARCH, auditSearch, PortletSession.APPLICATION_SCOPE);
+			}
+		} catch (Exception ex) {
+			logger.info("[AuditController]->[viewJson]->[exception]", ex);
+			map.put(InfolabConstant.RESULT, InfolabConstant.NO);
+			map.put(InfolabConstant.MESSAGE, "Submit Unsuccessfully.");
+		}
+		super.printJson(response, map);
+		logger.info("[AuditController]->[viewJson]->[end]");
+	}
+
+	private AuditSearch generateAuditSearch(Pager pager) {
+		AuditSearch auditSearch = new AuditSearch();
+		auditSearch.setModuleIDArr(getStringArr(pager, "moduleIds"));
+		auditSearch.setUserIDArr(getStringArr(pager, "userIds"));
+		auditSearch.setFromDate((String) pager.getSearchCriteria().get("fromDate"));
+		auditSearch.setToDate((String) pager.getSearchCriteria().get("toDate"));
+		return auditSearch;
+	}
+
+	private String[] getStringArr(Pager pager, String key) {
+		if (pager.getSearchCriteria().get(key) != null) {
+			Object value = pager.getSearchCriteria().get(key);
+			if (pager.getSearchCriteria().get(key) instanceof String) {
+				return new String[] { (String) value };
+			} else {
+				return (String[]) value;
+			}
+		}
+		return null;
+	}
+
+	private AuditSearch generateArchiveSearch(Pager pager, ResourceRequest request) {
+		AuditSearch auditSearch = new AuditSearch();
+		if (NumberUtils.isNumber((String) pager.getSearchCriteria().get("selAuditMonth"))) {
+			auditSearch.setArchiveMonth(Integer.parseInt((String) pager.getSearchCriteria().get("selAuditMonth")));
+		}
+		if (NumberUtils.isNumber((String) pager.getSearchCriteria().get("selAuditYear"))) {
+			auditSearch.setArchiveYear(Integer.parseInt((String) pager.getSearchCriteria().get("selAuditYear")));
+		}
+		return auditSearch;
+	}
+
+	private List<Module> getModules() {
+
+		List<Module> modules = moduleService.getAllModulesForAudit();
+		Map<String, Module> map = new TreeMap<String, Module>();
+
+		for (Module module : modules) {
+			map.put(module.getModuleName(), module);
+		}
+
+		return Collections.list(Collections.enumeration(map.values()));
+	}
+}

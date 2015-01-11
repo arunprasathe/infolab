@@ -1,0 +1,35 @@
+<%@page session="false" contentType="text/html" pageEncoding="UTF-8" import="java.util.*,javax.portlet.*" %>
+<%@taglib uri="http://java.sun.com/portlet_2_0" prefix="portlet"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>     
+<portlet:defineObjects />
+<script type="text/javascript">
+$(document).ready(function() {
+	createBreadCrumb("breadcrumbs", "Home|Page not found", "/|#");
+});
+</script>  
+<!--Banner-->
+
+	<div class="pad-tb-10">
+		<div class="breadcrumbs left-15"></div>
+
+    </div>
+
+<!--End of Banner-->
+
+<div class="row">
+	<div class="inner">
+        <div class="col-sm-12 main">
+	        <div class="main-container rounded-white-box 404" style="text-align:center">
+	        	<h3 class="subpage-title" style="margin-top: 0px;">Page not found</h3>
+				<img src="wshcTheme/library/images/404error.png" alt="404 Error Image" />
+		    	<br />
+		    	<a href="/wshc">
+	          	<button type="button" class="btn btn-danger btn-sm">
+					<span class="glyphicon glyphicon-chevron-left"></span> 
+					go back to home page
+				</button>
+				</a>
+  			</div>   
+        </div>
+	</div>
+</div> 

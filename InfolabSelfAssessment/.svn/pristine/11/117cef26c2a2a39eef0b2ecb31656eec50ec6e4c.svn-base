@@ -1,0 +1,142 @@
+/**
+ * ****************************************************************************************
+ * Copyright (c) 2009 Infolab Pte Ltd. All Rights Reserved.
+ * 
+ * Project: Infolab Portal
+ * $Header$
+ * *****************************************************************************************
+ */
+package sg.infolab.audit.controller;
+
+import java.util.List;
+
+import sg.infolab.common.audit.bean.Audit;
+import sg.infolab.common.audit.search.AuditSearch;
+import sg.infolab.core.pager.Pager;
+
+/**
+ * 
+ * A sample Java bean that stores portlet instance data in portlet session.
+ * 
+ */
+public class AuditPortletSessionBean {
+
+	Audit audit;
+	AuditSearch auditSearch;
+	Pager pager;
+	private String actionType;
+	private String searchType;
+	private int year;
+	private int month;
+	private List moduleList;
+	private List selectedModuleList;
+	private List userList;
+	private List selectedUserList;
+	private List archiveMonthList;
+	private List archiveYearList;
+
+	public List getArchiveMonthList() {
+		return archiveMonthList;
+	}
+
+	public void setArchiveMonthList(List archiveMonthList) {
+		this.archiveMonthList = archiveMonthList;
+	}
+
+	public List getArchiveYearList() {
+		return archiveYearList;
+	}
+
+	public void setArchiveYearList(List archiveYearList) {
+		this.archiveYearList = archiveYearList;
+	}
+
+	public Pager getPager() {
+		return pager;
+	}
+
+	public void setPager(Pager pager) {
+		this.pager = pager;
+	}
+
+	public String getActionType() {
+		return actionType;
+	}
+
+	public void setActionType(String actionType) {
+		this.actionType = actionType;
+	}
+
+	public Audit getAudit() {
+		return audit;
+	}
+
+	public void setAudit(Audit audit) {
+		this.audit = audit;
+	}
+
+	public AuditSearch getAuditSearch() {
+		return auditSearch;
+	}
+
+	public void setAuditSearch(AuditSearch auditSearch) {
+		this.auditSearch = auditSearch;
+	}
+
+	public int getYear() {
+		return year;
+	}
+
+	public void setYear(int year) {
+		this.year = year;
+	}
+
+	public int getMonth() {
+		return month;
+	}
+
+	public void setMonth(int month) {
+		this.month = month;
+	}
+
+	public List getModuleList() {
+		return moduleList;
+	}
+
+	public void setModuleList(List moduleList) {
+		this.moduleList = moduleList;
+	}
+
+	public List getUserList() {
+		return userList;
+	}
+
+	public void setUserList(List userList) {
+		this.userList = userList;
+	}
+
+	public String getSearchType() {
+		return searchType;
+	}
+
+	public void setSearchType(String searchType) {
+		this.searchType = searchType;
+	}
+
+	public List getSelectedModuleList() {
+		return selectedModuleList;
+	}
+
+	public void setSelectedModuleList(List selectedModuleList) {
+		this.selectedModuleList = selectedModuleList;
+	}
+
+	public List getSelectedUserList() {
+		return selectedUserList;
+	}
+
+	public void setSelectedUserList(List selectedUserList) {
+		this.selectedUserList = selectedUserList;
+	}
+
+}

@@ -1,0 +1,7 @@
+# en Resource Bundle
+#
+# filename: AuditPortletResource_en.properties
+# Portlet Info resource bundle example
+javax.portlet.title=InfolabCommonAudit
+javax.portlet.short-title=InfolabCommonAudit
+javax.portlet.keywords=InfolabCommonAudit

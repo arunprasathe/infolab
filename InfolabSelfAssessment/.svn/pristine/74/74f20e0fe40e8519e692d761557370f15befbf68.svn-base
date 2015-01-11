@@ -1,0 +1,52 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'war'
+
+// NO NEED CHANGE
+sourceCompatibility = 1.6
+version = '1.0'
+jar {
+	manifest {
+		attributes 'Implementation-Title': 'Gradle Quickstart', 'Implementation-Version': version
+	}
+}
+
+// NO NEED CHANGE
+def devlibDir = "../InfolabDevLibraries"
+def libDir = "../InfolabLibraries"
+def propsPath = "../InfolabProperties/gradle.properties";
+def props = new Properties();
+file(propsPath).withReader{
+	reader ->
+		props.load(reader);
+		println props["pluto.path"]
+}
+def target = props["pluto.path"] + project.name
+
+dependencies {
+	runtime fileTree(dir: devlibDir, include: '*.jar')
+	runtime fileTree(dir: libDir, include: '*.jar')
+}
+
+test { systemProperties 'property': 'value' }
+
+uploadArchives {
+	repositories { flatDir { dirs 'repos' } }
+}
+
+task packageWar(type:Jar) {
+	archiveName = project.name + '.war'
+	from ('WebContent')
+	exclude '**/*.bak'
+	exclude '**/*Test*.class'
+	includeEmptyDirs = true
+}
+
+task deploy(type: Copy) {
+	from 'WebContent'
+	from ('build/classes'){ into 'WEB-INF/classes' }
+	into target
+	exclude '**/*.bak'
+	exclude '**/*Test*.class'
+	includeEmptyDirs = true
+}

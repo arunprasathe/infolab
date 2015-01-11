@@ -1,0 +1,72 @@
+package sg.infolab.audit.servlet;
+
+import java.util.ArrayList;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.collections.map.LinkedMap;
+import org.apache.log4j.Logger;
+
+import sg.infolab.audit.constant.AuditPortletConstant;
+import sg.infolab.audit.controller.AuditPortletSessionBean;
+import sg.infolab.core.bean.ExportExcel;
+import sg.infolab.core.constant.InfolabConstant;
+import sg.infolab.core.pager.Pager;
+import sg.infolab.core.servlet.AbstractExcelServlet;
+
+public class ExportExcelServlet extends AbstractExcelServlet{
+	
+	private static Logger logger = Logger.getLogger(ExportExcelServlet.class);
+
+	@Override
+	public ExportExcel getExportExcel(HttpServletRequest request) {
+		
+		AuditPortletSessionBean sessionBean = (AuditPortletSessionBean) request.getSession().getAttribute(InfolabConstant.SESSION_BEAN);
+		
+		Pager pager = sessionBean.getPager();
+		Pager pager2 = new Pager();
+		ExportExcel exportExcel = new ExportExcel();
+		Map map = new LinkedMap();
+		map.put("auditTitle", "Title");
+		map.put("auditModuleName", "Module");
+		map.put("auditUserName", "User Name");
+		map.put("auditUserID", "User ID");
+		if(AuditPortletConstant.SEARCH_TYPE_ARCHIVE.equals(sessionBean.getSearchType())) {
+			map.put("auditArchiveDate", "Date");
+		} else {
+			map.put("auditDate", "Date");
+		}
+		map.put("auditActionName", "Action");
+		map.put("auditIPViewer", "IP viewer");
+		exportExcel.setColumnHead(map);
+		exportExcel.setData(new ArrayList());
+		try {
+			BeanUtils.copyProperties(pager2, pager);
+			pager2.setAllRecord(true);
+			pager2.setPage(1);
+			if(AuditPortletConstant.SEARCH_TYPE_ARCHIVE.equals(sessionBean.getSearchType())) {
+				pager2 = null; //ServiceLocator.getAuditService().getAuditTrailByArchiveDatePagination(pager2, sessionBean.getAuditSearch());
+			} else {
+				pager2 = null; //ServiceLocator.getAuditService().getAuditTrailSearchPagination(pager2, sessionBean.getAuditSearch());
+			}
+			if(pager2 != null) {
+				exportExcel.setData(pager2.getResultList());
+			}
+		} catch (Exception e) {		
+			logger.error(e.getMessage());
+		}
+		
+		return exportExcel;
+	}
+
+	@Override
+	public String getRelativeModulePath() {
+		return InfolabConstant.UPLOAD_AUDIT_PATH;
+	}
+	
+	public String getModuleName() {
+		return "AUDIT_";
+	}
+}

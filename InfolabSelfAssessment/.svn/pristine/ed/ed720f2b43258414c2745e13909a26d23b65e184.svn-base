@@ -1,0 +1,115 @@
+package sg.infolab.audit.servlet;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.collections.map.LinkedMap;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
+
+import sg.infolab.audit.constant.AuditPortletConstant;
+import sg.infolab.common.audit.bean.Audit;
+import sg.infolab.common.audit.search.AuditSearch;
+import sg.infolab.common.audit.service.AuditService;
+import sg.infolab.core.bean.ExportExcel;
+import sg.infolab.core.constant.InfolabConstant;
+import sg.infolab.core.pager.Pager;
+import sg.infolab.core.servlet.AbstractExcelServlet;
+
+public class AuditExportExcelServlet extends AbstractExcelServlet{
+	
+	private static Logger logger = Logger.getLogger(AuditExportExcelServlet.class);
+
+	private AuditService auditService = null;
+
+	public void init(ServletConfig config) throws ServletException {
+		super.init(config);
+		WebApplicationContext webContext = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
+		auditService = (AuditService) webContext.getBean(AuditService.class);
+	}
+	
+	@Override
+	public ExportExcel getExportExcel(HttpServletRequest request) {
+		ExportExcel exportExcel = new ExportExcel();
+		
+		Pager pager = (Pager) request.getSession().getAttribute(AuditPortletConstant.AUDIT_PAGER);
+		AuditSearch auditSearch = (AuditSearch) request.getSession().getAttribute(AuditPortletConstant.ACTION_SEARCH);
+		String isArchiveSort = StringUtils.defaultIfEmpty((String) pager.getSearchCriteria().get("isArchiveSort"),InfolabConstant.NO);
+		
+		String auditArchive = request.getParameter("chkAuditArchive");
+		
+		if(StringUtils.isBlank(auditArchive))	{
+			return exportExcel;
+		}
+
+		try {
+		
+			String[] IDs = auditArchive.split(",");
+			
+			List<Audit> auditList = (List<Audit>)pager.getResultList();
+			List<Audit> auditListRows =  new ArrayList<Audit>();
+			
+			for(String newID : IDs){
+				for(Audit audit : auditList){
+					String id = audit.getAuditID();
+					if(StringUtils.equals(id, newID)){
+						auditListRows.add(audit);
+					}
+				}
+			}
+		
+		Map map = new LinkedMap();
+		map.put("auditTitle", "Title");
+		map.put("auditModuleName", "Module");
+		map.put("auditUserName", "User Name");
+		map.put("auditUserID", "User ID");
+		map.put("auditDate", "Date");
+		map.put("auditActionName", "Action");
+		//map.put("auditIPViewer", "IP viewer");
+		
+		exportExcel.setColumnHead(map);
+		exportExcel.setData(auditListRows);
+
+		} catch (Exception e) {		
+			logger.error(e.getMessage());
+			
+		}
+		
+		/*
+		try {
+			pager.setAllRecord(true);
+			pager.setPage(1);
+			if(InfolabConstant.YES.equals(isArchiveSort)) {
+				pager = auditService.getAuditTrailByArchiveDatePagination(pager, auditSearch);
+			} else {
+				pager = auditService.getAuditTrailSearchPagination(pager, auditSearch);
+			}
+			if(pager != null) {
+				exportExcel.setData(pager.getResultList());
+			}
+		} catch (Exception e) {		
+			logger.error(e.getMessage());
+			
+		}*/
+		
+		return exportExcel;
+	}
+
+	
+	@Override
+	public String getRelativeModulePath() {
+		return InfolabConstant.UPLOAD_AUDIT_PATH;
+	}
+	
+	public String getModuleName() {
+		return "AUDIT_";
+	}
+}

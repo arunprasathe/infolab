@@ -1,0 +1,112 @@
+var demoApp = angular.module('demoApp', []);
+
+// pagination
+function DemoPagination($scope, $rootScope, $http){
+	//set request params
+	$scope.method = 'POST';
+	$scope.url = $("#demoList").attr("action");
+	$scope.data = {};
+	$scope.params = {};
+	
+	//request template
+	$scope.template = function(operation) {
+		$scope.code = null;
+		$scope.response = null;
+		$http({
+			method : $scope.method,
+			url : $scope.url,
+			params : $scope.params,
+			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+		}).success(operation).error(function(data, status) {
+			$scope.data = data || "Request failed";
+			$scope.status = status;
+		});
+	};
+
+	//search result and all the pagination should be reload
+	$scope.pagination = function(data, status) {
+		$scope.status = status;
+		$scope.data = data.resultList;
+		$("#demoPagination").pagination({
+			items: data.totalRecord,
+	        itemsOnPage: data.resultPerPage,
+	        cssStyle: 'light-theme',
+	        onPageClick: function(pageNumber) {
+	        	$scope.params = {"page" : pageNumber, "searchCriteria['userId']" : "%" + $scope.searchName + "%"};
+	        	$scope.template($scope.fetch);
+	        }
+	    });
+	};
+	
+	//pagination only, no need change
+	$scope.fetch = function(data, status) {
+		$scope.status = status;
+		$scope.data = data.resultList;
+	};
+	
+	//search
+	$scope.search = function() {
+		$scope.params = {"page" : 1, "searchCriteria['userId']" : "%" + $scope.searchName + "%"};
+		$scope.template($scope.pagination);
+	}
+	
+	//view send broadcast
+	$scope.view = function(url, params) {
+		$rootScope.$broadcast('viewDemo', url, params);
+	}
+	
+	//default display
+	$scope.template($scope.pagination);
+}
+
+// View
+function DemoView($scope, $http){
+	//set request params
+	$scope.method = 'POST';
+	$scope.url = '';
+	$scope.data = {};
+	$scope.params = {};
+	
+	//request template
+	$scope.template = function(operation) {
+		$scope.code = null;
+		$scope.response = null;
+		$http({
+			method : $scope.method,
+			url : $scope.url,
+			params : $scope.params,
+			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+		}).success(operation).error(function(data, status) {
+			$scope.data = data || "Request failed";
+			$scope.status = status;
+		});
+	};
+	
+	// view record
+	$scope.viewById = function(data, status) {
+		$scope.status = status;
+		$scope.loginHistory = data;
+	};
+	
+	// view record
+	$scope.updateById = function(data, status) {
+		$scope.status = status;
+		$scope.data = data;
+	};
+	
+	// update record
+	$scope.update = function(url) {
+		$scope.url = url;
+		$scope.params = $scope.loginHistory;
+		$scope.template($scope.updateById);
+	};
+
+	// Get Broadcast
+	$scope.$on('viewDemo', function(event, url, params) {
+		$scope.url = url;
+		$scope.params = {"userId" : params};
+		$scope.template($scope.viewById);
+	});
+		
+	
+}
